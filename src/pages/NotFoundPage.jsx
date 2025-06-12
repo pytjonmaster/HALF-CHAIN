@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
@@ -7,8 +6,7 @@ import { Button } from '@/components/ui/button';
 
 const NotFoundPage = () => {
   return (
-    <section className="pt-32 pb-16 md:pt-40 md:pb-20 relative overflow-hidden min-h-screen flex items-center">
-      <div className="absolute inset-0 hero-gradient -z-10"></div>
+    <section className="pt-32 pb-16 md:pt-40 md:pb-20 relative overflow-hidden min-h-screen flex items-center bg-gradient-to-br from-[#0F1729] via-[#121032] via-[#162138] via-[#1A2847] to-[#21325A]">
       <div className="absolute inset-0 blockchain-pattern opacity-30 -z-10"></div>
       
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -18,9 +16,9 @@ const NotFoundPage = () => {
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5 }}
           >
-            <h1 className="text-7xl md:text-9xl font-bold mb-6 gradient-text">404</h1>
-            <h2 className="text-3xl md:text-4xl font-bold mb-6">Page Not Found</h2>
-            <p className="text-xl text-muted-foreground mb-8">
+            <h1 className="text-7xl md:text-9xl font-bold mb-6 text-yellow-500">404</h1>
+            <h2 className="text-3xl md:text-4xl font-bold mb-6 text-white">Page Not Found</h2>
+            <p className="text-xl text-gray-300 mb-8">
               The page you are looking for doesn't exist or has been moved.
             </p>
             

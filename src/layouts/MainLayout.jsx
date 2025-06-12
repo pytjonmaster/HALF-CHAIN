@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import Navbar from '@/components/Navbar';
+import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 
 const MainLayout = () => {
@@ -20,7 +20,7 @@ const MainLayout = () => {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <Navbar isScrolled={isScrolled} />
+      <Header />
       <main className="flex-grow">
         <motion.div
           key={location.pathname}

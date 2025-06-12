@@ -222,4 +222,200 @@ exports.revokeSession = async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
   }
+};
+
+// ADMIN ROUTES
+
+// @desc    Get all users (Admin only)
+// @route   GET /api/auth/admin/users
+// @access  Private/Admin
+exports.getAllUsers = async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    // Get search query if provided
+    const search = req.query.search || '';
+    const searchQuery = search ? {
+      $or: [
+        { name: { $regex: search, $options: 'i' } },
+        { email: { $regex: search, $options: 'i' } }
+      ]
+    } : {};
+
+    // Get total count for pagination
+    const total = await User.countDocuments(searchQuery);
+
+    // Get users with pagination (excluding passwords)
+    const users = await User.find(searchQuery)
+      .select('-password -resetPasswordToken -emailVerificationToken')
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    // Get users statistics
+    const stats = await User.aggregate([
+      {
+        $group: {
+          _id: null,
+          totalUsers: { $sum: 1 },
+          verifiedUsers: {
+            $sum: { $cond: ['$isEmailVerified', 1, 0] }
+          },
+          adminUsers: {
+            $sum: { $cond: [{ $eq: ['$role', 'admin'] }, 1, 0] }
+          }
+        }
+      }
+    ]);
+
+    res.json({
+      users,
+      pagination: {
+        current: page,
+        pages: Math.ceil(total / limit),
+        total,
+        limit
+      },
+      stats: stats[0] || { totalUsers: 0, verifiedUsers: 0, adminUsers: 0 }
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
+// @desc    Get single user details (Admin only)
+// @route   GET /api/auth/admin/users/:id
+// @access  Private/Admin
+exports.getUserById = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id)
+      .select('-password -resetPasswordToken -emailVerificationToken');
+    
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.json(user);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
+// @desc    Update user (Admin only)
+// @route   PUT /api/auth/admin/users/:id
+// @access  Private/Admin
+exports.updateUser = async (req, res) => {
+  try {
+    const { name, email, role, isEmailVerified } = req.body;
+    
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Check if email is being changed and if it's already taken
+    if (email && email !== user.email) {
+      const emailExists = await User.findOne({ email });
+      if (emailExists) {
+        return res.status(400).json({ message: 'Email already exists' });
+      }
+    }
+
+    // Update fields
+    if (name) user.name = name;
+    if (email) user.email = email;
+    if (role) user.role = role;
+    if (typeof isEmailVerified === 'boolean') user.isEmailVerified = isEmailVerified;
+
+    await user.save();
+
+    res.json({
+      message: 'User updated successfully',
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        isEmailVerified: user.isEmailVerified
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
+// @desc    Delete user (Admin only)
+// @route   DELETE /api/auth/admin/users/:id
+// @access  Private/Admin
+exports.deleteUser = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Don't allow admin to delete themselves
+    if (user._id.toString() === req.user.id) {
+      return res.status(400).json({ message: 'Cannot delete your own account' });
+    }
+
+    await User.findByIdAndDelete(req.params.id);
+    res.json({ message: 'User deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
+// @desc    Get system statistics (Admin only)
+// @route   GET /api/auth/admin/stats
+// @access  Private/Admin
+exports.getSystemStats = async (req, res) => {
+  try {
+    const stats = await User.aggregate([
+      {
+        $facet: {
+          userStats: [
+            {
+              $group: {
+                _id: null,
+                totalUsers: { $sum: 1 },
+                verifiedUsers: { $sum: { $cond: ['$isEmailVerified', 1, 0] } },
+                adminUsers: { $sum: { $cond: [{ $eq: ['$role', 'admin'] }, 1, 0] } }
+              }
+            }
+          ],
+          recentSignups: [
+            { $sort: { createdAt: -1 } },
+            { $limit: 10 },
+            { $project: { name: 1, email: 1, createdAt: 1, isEmailVerified: 1 } }
+          ],
+          dailySignups: [
+            {
+              $group: {
+                _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
+                count: { $sum: 1 }
+              }
+            },
+            { $sort: { _id: -1 } },
+            { $limit: 30 }
+          ]
+        }
+      }
+    ]);
+
+    // Get active sessions count
+    const activeSessions = await User.aggregate([
+      { $unwind: '$sessions' },
+      { $group: { _id: null, totalSessions: { $sum: 1 } } }
+    ]);
+
+    res.json({
+      ...stats[0],
+      activeSessions: activeSessions[0]?.totalSessions || 0
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
 }; 

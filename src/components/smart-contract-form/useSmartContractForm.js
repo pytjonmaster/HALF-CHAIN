@@ -1,8 +1,8 @@
-
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useToast } from '@/components/ui/use-toast';
 import { blockchains } from '@/components/smart-contract-form/formUtils.js';
 import { getExplorerUrl, simulateTransactionHash } from '@/components/smart-contract-form/deploymentUtils.js';
+import { generateContractCode, generateTemplateBasedContract } from './formUtils';
 
 const initialFormData = {
   contractName: '',
@@ -13,7 +13,10 @@ const initialFormData = {
   terms: '',
   enableKYC: true,
   enableAudit: true,
+  generatedCode: '',
 };
+
+const REQUIRED_FIELDS = ['contractName', 'contractType', 'blockchain'];
 
 export const useSmartContractForm = () => {
   const { toast } = useToast();
@@ -27,24 +30,42 @@ export const useSmartContractForm = () => {
   const [transactionHash, setTransactionHash] = useState('');
   const [explorerUrl, setExplorerUrl] = useState('');
   const [formData, setFormData] = useState(initialFormData);
+  const [validationErrors, setValidationErrors] = useState({});
+
+  const validateForm = useCallback(() => {
+    const errors = {};
+    REQUIRED_FIELDS.forEach(field => {
+      if (!formData[field]) {
+        errors[field] = `${field.charAt(0).toUpperCase() + field.slice(1)} is required`;
+      }
+    });
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
+  }, [formData]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+    if (validationErrors[name]) {
+      setValidationErrors(prev => ({ ...prev, [name]: '' }));
+    }
   };
 
   const handleSelectChange = (name, value) => {
     setFormData((prev) => ({ ...prev, [name]: value }));
+    if (validationErrors[name]) {
+      setValidationErrors(prev => ({ ...prev, [name]: '' }));
+    }
   };
 
   const handleSwitchChange = (name, checked) => {
     setFormData((prev) => ({ ...prev, [name]: checked }));
   };
 
-  const handleGenerateContract = () => {
-    if (!formData.contractName || !formData.contractType || !formData.blockchain) {
+  const handleGenerateContract = async () => {
+    if (!validateForm()) {
       toast({
-        title: "Missing Information",
+        title: "Validation Error",
         description: "Please fill in all required fields.",
         variant: "destructive",
       });
@@ -52,18 +73,67 @@ export const useSmartContractForm = () => {
     }
 
     setIsGenerating(true);
-    setTimeout(() => {
-      setIsGenerating(false);
+    setContractGenerated(false);
+    
+    try {
+      let generatedCode = '';
+      let usedAI = false;
+      
+      try {
+        console.log('Attempting AI generation with:', formData);
+        generatedCode = await generateContractCode(formData);
+        usedAI = true;
+        console.log('AI generation successful');
+      } catch (error) {
+        console.warn('AI generation failed, falling back to template:', error);
+        toast({
+          variant: "warning",
+          title: "Using Template",
+          description: "AI service unavailable. Using template-based generation.",
+        });
+        generatedCode = generateTemplateBasedContract(formData);
+        usedAI = false;
+      }
+
+      setFormData(prev => ({ ...prev, generatedCode: generatedCode || '' }));
       setContractGenerated(true);
       setActiveTab('review');
+      
+      // Show appropriate success message
+      if (usedAI) {
+        toast({
+          title: "AI Contract Generated",
+          description: "Your smart contract was generated using AI.",
+        });
+      } else {
+        toast({
+          title: "Template Contract Generated", 
+          description: "Your smart contract was generated using templates.",
+        });
+      }
+    } catch (error) {
+      console.error('Contract generation failed:', error);
       toast({
-        title: "Contract Generated",
-        description: "Your smart contract has been successfully generated.",
+        variant: "destructive",
+        title: "Generation Failed",
+        description: "Failed to generate contract. Please try again.",
       });
-    }, 2000);
+      setFormData(prev => ({ ...prev, generatedCode: '' }));
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   const handleDeployContract = async () => {
+    if (!formData.generatedCode) {
+      toast({
+        variant: "destructive",
+        title: "No Contract",
+        description: "Please generate a contract first.",
+      });
+      return;
+    }
+
     setIsDeploying(true);
     setDeploymentStatus('Initiating deployment...');
     setDeploymentError('');
@@ -74,33 +144,30 @@ export const useSmartContractForm = () => {
     const selectedBlockchainInfo = blockchains.find(b => b.value === formData.blockchain);
 
     try {
-      await new Promise(resolve => setTimeout(resolve, 500));
-      setDeploymentStatus(`Connecting to ${selectedBlockchainInfo?.label} network...`);
-      
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      setDeploymentStatus('Simulating wallet connection...');
-      
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      setDeploymentStatus('Estimating gas fees...');
-      
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      setDeploymentStatus('Awaiting your confirmation in wallet (simulated)...');
-      
-      await new Promise(resolve => setTimeout(resolve, 2000)); 
-      setDeploymentStatus('Processing transaction...');
+      // Deployment simulation steps
+      const steps = [
+        { message: `Connecting to ${selectedBlockchainInfo?.label} network...`, delay: 500 },
+        { message: 'Simulating wallet connection...', delay: 1000 },
+        { message: 'Estimating gas fees...', delay: 1000 },
+        { message: 'Awaiting your confirmation in wallet (simulated)...', delay: 1000 },
+        { message: 'Processing transaction...', delay: 2000 },
+      ];
+
+      for (const step of steps) {
+        setDeploymentStatus(step.message);
+        await new Promise(resolve => setTimeout(resolve, step.delay));
+      }
+
       const simulatedTxHash = simulateTransactionHash();
       setTransactionHash(simulatedTxHash);
-
-      await new Promise(resolve => setTimeout(resolve, 2500));
       setDeploymentStatus(`Submitting transaction ${simulatedTxHash.substring(0,10)}... to the blockchain...`);
-
-      await new Promise(resolve => setTimeout(resolve, 3000));
-      setDeploymentStatus('Transaction submitted. Waiting for confirmations (simulated 1/3)...');
       
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      setDeploymentStatus('Transaction confirmation (simulated 2/3)...');
-
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      await new Promise(resolve => setTimeout(resolve, 3000));
+      
+      for (let i = 1; i <= 3; i++) {
+        setDeploymentStatus(`Transaction confirmation (simulated ${i}/3)...`);
+        await new Promise(resolve => setTimeout(resolve, 2000));
+      }
       
       setIsDeploying(false);
       setContractDeployed(true);
@@ -109,7 +176,7 @@ export const useSmartContractForm = () => {
       setDeploymentStatus('Deployment successful!');
       toast({
         title: "Contract Deployed",
-        description: `Your smart contract "${formData.contractName}" has been successfully deployed. TxHash: ${simulatedTxHash}`,
+        description: `Your smart contract "${formData.contractName}" has been successfully deployed.`,
       });
 
     } catch (error) {
@@ -125,6 +192,18 @@ export const useSmartContractForm = () => {
     }
   };
 
+  const resetForm = () => {
+    setFormData(initialFormData);
+    setValidationErrors({});
+    setContractGenerated(false);
+    setContractDeployed(false);
+    setTransactionHash('');
+    setExplorerUrl('');
+    setDeploymentStatus('');
+    setDeploymentError('');
+    setActiveTab('details');
+  };
+
   return {
     activeTab,
     setActiveTab,
@@ -137,10 +216,12 @@ export const useSmartContractForm = () => {
     transactionHash,
     explorerUrl,
     formData,
+    validationErrors,
     handleChange,
     handleSelectChange,
     handleSwitchChange,
     handleGenerateContract,
     handleDeployContract,
+    resetForm,
   };
 };

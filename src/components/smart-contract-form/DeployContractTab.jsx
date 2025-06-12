@@ -65,9 +65,9 @@ const DeployContractTab = ({
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="grid gap-4">
-            <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-xl p-4 border border-yellow-100 dark:border-yellow-800">
-              <h3 className="font-medium text-yellow-800 dark:text-yellow-300">Deployment Information</h3>
-              <ul className="mt-2 text-sm text-yellow-700 dark:text-yellow-400 space-y-1">
+            <div className="bg-yellow-50 rounded-xl p-4 border border-yellow-100">
+              <h3 className="font-medium text-yellow-800">Deployment Information</h3>
+              <ul className="mt-2 text-sm text-yellow-700 space-y-1">
                 <li>Contract Type: {contractTypes.find(t => t.value === formData.contractType)?.label}</li>
                 <li>Blockchain: {selectedBlockchain?.label}</li>
                 <li>Estimated Cost: {calculateDeploymentCost().amount} {calculateDeploymentCost().currency}</li>
@@ -85,12 +85,12 @@ const DeployContractTab = ({
           )}
 
           {isDeploying && (
-            <div className="bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-700 rounded-md p-4">
+            <div className="bg-[#1A2333] border border-indigo-700 rounded-md p-4">
               <div className="flex items-center">
                 <Loader2 className="h-5 w-5 text-indigo-500 mr-2 animate-spin" />
                 <div>
-                  <h4 className="font-medium text-indigo-800 dark:text-indigo-300">Deployment In Progress</h4>
-                  <p className="text-sm text-indigo-600 dark:text-indigo-400">
+                  <h4 className="font-medium text-indigo-300">Deployment In Progress</h4>
+                  <p className="text-sm text-indigo-400">
                     {deploymentStatus}
                   </p>
                 </div>
@@ -99,12 +99,12 @@ const DeployContractTab = ({
           )}
 
           {deploymentError && !isDeploying && (
-             <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 rounded-md p-4">
+             <div className="bg-[#1A2333] border border-red-700 rounded-md p-4">
               <div className="flex items-start">
                 <XCircle className="h-5 w-5 text-red-500 mt-0.5 mr-2" />
                 <div>
-                  <h4 className="font-medium text-red-800 dark:text-red-300">Deployment Failed</h4>
-                  <p className="text-sm text-red-600 dark:text-red-400">
+                  <h4 className="font-medium text-red-300">Deployment Failed</h4>
+                  <p className="text-sm text-red-400">
                     {deploymentError}
                   </p>
                 </div>
@@ -113,31 +113,31 @@ const DeployContractTab = ({
           )}
 
           {contractDeployed && (
-            <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700 rounded-md p-4">
+            <div className="bg-green-50 rounded-md p-4">
               <div className="flex items-start">
                 <CheckCircle className="h-5 w-5 text-green-500 mt-0.5 mr-2" />
                 <div className="flex-1">
-                  <h4 className="font-medium text-green-800 dark:text-green-300">Deployment Successful!</h4>
-                  <p className="text-sm text-green-600 dark:text-green-400 mt-1">
+                  <h4 className="font-medium text-green-800">Deployment Successful!</h4>
+                  <p className="text-sm text-green-600 mt-1">
                     Your contract "{formData.contractName || 'Smart Contract'}" is now live on the {selectedBlockchain?.label} blockchain.
                   </p>
                   {transactionHash && (
                     <div className="mt-3 space-y-2">
-                      <div className="flex items-center justify-between bg-green-100 dark:bg-green-900/40 rounded-lg p-3">
-                        <div className="text-sm text-green-700 dark:text-green-300 font-mono truncate">
+                      <div className="flex items-center justify-between bg-green-100 rounded-lg p-3">
+                        <div className="text-sm text-green-700 font-mono truncate">
                           Transaction Hash: {transactionHash}
                         </div>
                         {explorerUrl && (
                           <button
                             onClick={handleViewOnExplorer}
-                            className="ml-3 inline-flex items-center text-sm text-green-600 hover:text-green-500 dark:text-green-400 dark:hover:text-green-300 shrink-0"
+                            className="ml-3 inline-flex items-center text-sm text-green-600 hover:text-green-500 shrink-0"
                           >
                             View on Explorer
                             <ExternalLink className="ml-1 h-4 w-4" />
                           </button>
                         )}
                       </div>
-                      <p className="text-xs text-green-600 dark:text-green-400">
+                      <p className="text-xs text-green-600">
                         Your contract will be fully confirmed after a few block confirmations. You can track the status using the explorer link above.
                       </p>
                     </div>

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
@@ -7,14 +6,13 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
-import { Separator } from '@/components/ui/separator';
 import { Loader2 } from 'lucide-react';
 
 const ContractDetailsTab = ({
   formData,
   handleChange,
   handleSelectChange,
-  hndleSwitchChange,
+  handleSwitchChange,
   isGenerating,
   onGenerateContract,
   contractTypes,
@@ -25,8 +23,10 @@ const ContractDetailsTab = ({
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
+      className="space-y-6"
     >
-      <Card>
+      {/* Main Contract Details Card */}
+      <Card className="border-2 border-border/50 bg-card/60 backdrop-blur-md shadow-lg">
         <CardHeader>
           <CardTitle>Contract Details</CardTitle>
           <CardDescription>
@@ -46,6 +46,7 @@ const ContractDetailsTab = ({
                 value={formData.contractName}
                 onChange={handleChange}
                 disabled={isGenerating}
+                className="border-2 border-gray-400 focus:border-blue-500"
               />
             </div>
             
@@ -58,7 +59,7 @@ const ContractDetailsTab = ({
                 onValueChange={(value) => handleSelectChange('contractType', value)}
                 disabled={isGenerating}
               >
-                <SelectTrigger>
+                <SelectTrigger className="border-2 border-gray-400 focus:border-blue-500">
                   <SelectValue placeholder="Select contract type" />
                 </SelectTrigger>
                 <SelectContent>
@@ -81,7 +82,7 @@ const ContractDetailsTab = ({
               onValueChange={(value) => handleSelectChange('blockchain', value)}
               disabled={isGenerating}
             >
-              <SelectTrigger>
+              <SelectTrigger className="border-2 border-gray-400 focus:border-blue-500">
                 <SelectValue placeholder="Select blockchain" />
               </SelectTrigger>
               <SelectContent>
@@ -106,11 +107,15 @@ const ContractDetailsTab = ({
               onChange={handleChange}
               rows={3}
               disabled={isGenerating}
+              className="border-2 border-gray-400 focus:border-blue-500"
             />
           </div>
-          
-          <Separator />
-          
+        </CardContent>
+      </Card>
+
+      {/* Parties and Terms Card */}
+      <Card className="border-2 border-border/50 bg-card/60 backdrop-blur-md shadow-lg">
+        <CardContent className="pt-6 space-y-6">
           <div className="space-y-2">
             <label htmlFor="parties" className="text-sm font-medium">
               Involved Parties
@@ -123,6 +128,7 @@ const ContractDetailsTab = ({
               onChange={handleChange}
               rows={2}
               disabled={isGenerating}
+              className="border-2 border-gray-400 focus:border-blue-500"
             />
           </div>
           
@@ -138,66 +144,70 @@ const ContractDetailsTab = ({
               onChange={handleChange}
               rows={4}
               disabled={isGenerating}
+              className="border-2 border-gray-400 focus:border-blue-500"
+            />
+          </div>
+        </CardContent>
+      </Card>
+      
+      {/* Compliance Options Card */}
+      <Card className="border-2 border-border/50 bg-card/60 backdrop-blur-md shadow-lg">
+        <CardContent className="pt-6 space-y-4">
+          <h3 className="text-sm font-medium">Compliance Options</h3>
+          
+          <div className="flex items-center justify-between">
+            <div className="space-y-0.5">
+              <label htmlFor="enableKYC" className="text-sm font-medium">
+                Enable KYC/AML Verification
+              </label>
+              <p className="text-sm text-muted-foreground">
+                Require identity verification for all parties
+              </p>
+            </div>
+            <Switch
+              id="enableKYC"
+              checked={formData.enableKYC}
+              onCheckedChange={(checked) => handleSwitchChange('enableKYC', checked)}
+              disabled={isGenerating}
             />
           </div>
           
-          <Separator />
-          
-          <div className="space-y-4">
-            <h3 className="text-sm font-medium">Compliance Options</h3>
-            
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <label htmlFor="enableKYC" className="text-sm font-medium">
-                  Enable KYC/AML Verification
-                </label>
-                <p className="text-sm text-muted-foreground">
-                  Require identity verification for all parties
-                </p>
-              </div>
-              <Switch
-                id="enableKYC"
-                checked={formData.enableKYC}
-                onCheckedChange={(checked) => handleSwitchChange('enableKYC', checked)}
-                disabled={isGenerating}
-              />
+          <div className="flex items-center justify-between">
+            <div className="space-y-0.5">
+              <label htmlFor="enableAudit" className="text-sm font-medium">
+                Enable Security Audit
+              </label>
+              <p className="text-sm text-muted-foreground">
+                Perform automated security audit before deployment
+              </p>
             </div>
-            
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <label htmlFor="enableAudit" className="text-sm font-medium">
-                  Enable Security Audit
-                </label>
-                <p className="text-sm text-muted-foreground">
-                  Perform automated security audit before deployment
-                </p>
-              </div>
-              <Switch
-                id="enableAudit"
-                checked={formData.enableAudit}
-                onCheckedChange={(checked) => handleSwitchChange('enableAudit', checked)}
-                disabled={isGenerating}
-              />
-            </div>
+            <Switch
+              id="enableAudit"
+              checked={formData.enableAudit}
+              onCheckedChange={(checked) => handleSwitchChange('enableAudit', checked)}
+              disabled={isGenerating}
+            />
           </div>
         </CardContent>
-        <CardFooter>
-          <Button 
-            onClick={onGenerateContract} 
-            disabled={isGenerating}
-            className="w-full"
-          >
-            {isGenerating ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Generating Contract...
-              </>
-            ) : (
-              'Generate Smart Contract'
-            )}
-          </Button>
-        </CardFooter>
       </Card>
+
+      {/* Generate Button */}
+      <div className="pt-4">
+        <Button 
+          onClick={onGenerateContract} 
+          disabled={isGenerating}
+          className="w-full"
+        >
+          {isGenerating ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Generating Contract...
+            </>
+          ) : (
+            'Generate Smart Contract'
+          )}
+        </Button>
+      </div>
     </motion.div>
   );
 };

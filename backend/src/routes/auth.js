@@ -8,7 +8,12 @@ const {
   forgotPassword,
   resetPassword,
   getSessions,
-  revokeSession
+  revokeSession,
+  getAllUsers,
+  getUserById,
+  updateUser,
+  deleteUser,
+  getSystemStats
 } = require('../controllers/authController');
 const { protect } = require('../middleware/auth');
 const { authorize } = require('../middleware/roleAuth');
@@ -27,9 +32,10 @@ router.get('/sessions', protect, getSessions);
 router.delete('/sessions/:token', protect, revokeSession);
 
 // Admin routes
-router.get('/admin/users', protect, authorize('admin'), async (req, res) => {
-  // TODO: Implement admin user list
-  res.json({ message: 'Admin route - List all users' });
-});
+router.get('/admin/users', protect, authorize('admin'), getAllUsers);
+router.get('/admin/users/:id', protect, authorize('admin'), getUserById);
+router.put('/admin/users/:id', protect, authorize('admin'), updateUser);
+router.delete('/admin/users/:id', protect, authorize('admin'), deleteUser);
+router.get('/admin/stats', protect, authorize('admin'), getSystemStats);
 
 module.exports = router; 

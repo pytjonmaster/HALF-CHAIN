@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardContent } from '@/components/ui/card';
@@ -30,13 +29,13 @@ const testimonials = [
 
 const TestimonialsSection = () => {
   return (
-    <section className="py-16 md:py-24 bg-background">
+    <section className="py-16 md:py-24">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-3xl mx-auto mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4 text-foreground">
-            Trusted by <span className="accent-text">Industry Leaders</span>
+          <h2 className="text-3xl md:text-4xl font-bold mb-4 text-white">
+            Trusted by <span className="text-yellow-500">Industry Leaders</span>
           </h2>
-          <p className="text-lg text-muted-foreground">
+          <p className="text-lg text-gray-300">
             See what our clients say about their experience with HALF-CHAIN's smart contract platform.
           </p>
         </div>
@@ -50,7 +49,7 @@ const TestimonialsSection = () => {
               transition={{ duration: 0.5, delay: index * 0.1 }}
               viewport={{ once: true }}
             >
-              <Card className="h-full bg-card border-border hover:border-primary/50 shadow-lg hover:shadow-primary/10 transition-all duration-300">
+              <Card className="h-full custom-gradient-card hover:border-yellow-500/50 shadow-lg hover:shadow-yellow-500/10 transition-all duration-300">
                 <CardContent className="pt-6">
                   <div className="flex mb-4">
                     {[...Array(5)].map((_, i) => (
@@ -62,14 +61,14 @@ const TestimonialsSection = () => {
                       />
                     ))}
                   </div>
-                  <blockquote className="text-lg mb-6 text-foreground/90">"{testimonial.quote}"</blockquote>
+                  <blockquote className="text-lg mb-6 text-gray-300">"{testimonial.quote}"</blockquote>
                   <div className="flex items-center">
-                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary/80 to-primary flex items-center justify-center text-primary-foreground font-bold text-lg mr-4">
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-yellow-500/80 to-yellow-600 flex items-center justify-center text-white font-bold text-lg mr-4">
                       {testimonial.avatarInitial}
                     </div>
                     <div>
-                      <p className="font-semibold text-foreground">{testimonial.author}</p>
-                      <p className="text-sm text-muted-foreground">{testimonial.position}</p>
+                      <p className="font-semibold text-white">{testimonial.author}</p>
+                      <p className="text-sm text-gray-300">{testimonial.position}</p>
                     </div>
                   </div>
                 </CardContent>
