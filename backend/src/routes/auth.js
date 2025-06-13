@@ -1,6 +1,5 @@
-const express = require('express');
-const router = express.Router();
-const { 
+import express from 'express';
+import { 
   signup, 
   signin, 
   getProfile,
@@ -14,16 +13,18 @@ const {
   updateUser,
   deleteUser,
   getSystemStats
-} = require('../controllers/authController');
-const { protect } = require('../middleware/auth');
-const { authorize } = require('../middleware/roleAuth');
-const { validate, authValidation } = require('../middleware/validation');
+} from '../controllers/authController.js';
+import { protect } from '../middleware/auth.js';
+import { authorize } from '../middleware/roleAuth.js';
+import { validate, authValidation } from '../middleware/validation.js';
+
+const router = express.Router();
 
 // Public routes
 router.post('/signup', authValidation.signup, validate, signup);
 router.post('/signin', authValidation.signin, validate, signin);
 router.get('/verify-email/:token', verifyEmail);
-router.post('/forgot-password', authValidation.signin, validate, forgotPassword);
+router.post('/forgot-password', authValidation.forgotPassword, validate, forgotPassword);
 router.post('/reset-password/:token', authValidation.resetPassword, validate, resetPassword);
 
 // Protected routes
@@ -38,4 +39,4 @@ router.put('/admin/users/:id', protect, authorize('admin'), updateUser);
 router.delete('/admin/users/:id', protect, authorize('admin'), deleteUser);
 router.get('/admin/stats', protect, authorize('admin'), getSystemStats);
 
-module.exports = router; 
+export default router; 

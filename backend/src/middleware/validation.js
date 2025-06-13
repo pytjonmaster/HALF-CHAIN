@@ -1,4 +1,4 @@
-const { body, validationResult } = require('express-validator');
+import { body, validationResult } from 'express-validator';
 
 // Validation middleware
 const validate = (req, res, next) => {
@@ -33,12 +33,6 @@ const authValidation = {
       .withMessage('Password is required')
       .isLength({ min: 6 })
       .withMessage('Password must be at least 6 characters long')
-      .matches(/\d/)
-      .withMessage('Password must contain a number')
-      .matches(/[A-Z]/)
-      .withMessage('Password must contain an uppercase letter')
-      .matches(/[a-z]/)
-      .withMessage('Password must contain a lowercase letter')
   ],
 
   signin: [
@@ -56,6 +50,16 @@ const authValidation = {
       .withMessage('Password is required')
   ],
 
+  forgotPassword: [
+    body('email')
+      .trim()
+      .notEmpty()
+      .withMessage('Email is required')
+      .isEmail()
+      .withMessage('Please enter a valid email')
+      .normalizeEmail()
+  ],
+
   resetPassword: [
     body('password')
       .trim()
@@ -63,16 +67,7 @@ const authValidation = {
       .withMessage('Password is required')
       .isLength({ min: 6 })
       .withMessage('Password must be at least 6 characters long')
-      .matches(/\d/)
-      .withMessage('Password must contain a number')
-      .matches(/[A-Z]/)
-      .withMessage('Password must contain an uppercase letter')
-      .matches(/[a-z]/)
-      .withMessage('Password must contain a lowercase letter')
   ]
 };
 
-module.exports = {
-  validate,
-  authValidation
-}; 
+export { validate, authValidation }; 

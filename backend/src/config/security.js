@@ -1,8 +1,8 @@
-  const rateLimit = require('express-rate-limit');
-const helmet = require('helmet');
-const xss = require('xss-clean');
-const hpp = require('hpp');
-const cors = require('cors');
+import rateLimit from 'express-rate-limit';
+import helmet from 'helmet';
+import xss from 'xss-clean';
+import hpp from 'hpp';
+import cors from 'cors';
 
 // Rate limiting
 const limiter = rateLimit({
@@ -28,7 +28,7 @@ const corsOptions = {
 };
 
 // Security middleware setup
-const setupSecurityMiddleware = (app) => {
+export const setupSecurityMiddleware = (app) => {
   // Basic security headers
   app.use(helmet());
 
@@ -46,7 +46,4 @@ const setupSecurityMiddleware = (app) => {
   app.use(cors(corsOptions));
 };
 
-module.exports = {
-  setupSecurityMiddleware,
-  corsOptions
-}; 
+export { corsOptions }; 
